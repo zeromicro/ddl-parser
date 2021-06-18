@@ -30,6 +30,12 @@ type Visitor struct {
 	logger console.Console
 }
 
+func (v *Visitor) trace(msg ...interface{}) {
+	if v.debug {
+		v.logger.Debug("Visit Trace: " + fmt.Sprint(msg...))
+	}
+}
+
 func (v *Visitor) panic(line, column int, msg string) {
 	if len(v.prefix) == 0 {
 		panic(fmt.Errorf("%v:%v %s", line, column, msg))
