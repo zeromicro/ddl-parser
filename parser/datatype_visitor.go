@@ -83,12 +83,12 @@ const (
 	Text
 	MediumText
 	LongText
-	Long
 )
 
 // DataType describes the data type of the column in table
 type DataType int
 
+// VisitDataType visits data type by switch-case
 func (v *Visitor) VisitDataType(ctx gen.IDataTypeContext) DataType {
 	switch t := ctx.(type) {
 	case *gen.StringDataTypeContext:
@@ -139,7 +139,7 @@ func (v *Visitor) VisitStringDataType(ctx *gen.StringDataTypeContext) DataType {
 	case `NVARCHAR`:
 		return NVarChar
 	case `LONG`:
-		return Long
+		return LongVarChar
 	}
 
 	v.panicWithExpr(ctx.GetTypeName(), "invalid data type: "+text)
@@ -262,6 +262,7 @@ func (v *Visitor) VisitSimpleDataType(ctx *gen.SimpleDataTypeContext) DataType {
 }
 
 // VisitCollectionDataType visits a parse tree produced by MySqlParser#collectionDataType.
+// todo(anqiansong) enum/set value
 func (v *Visitor) VisitCollectionDataType(ctx *gen.CollectionDataTypeContext) DataType {
 	v.trace("VisitCollectionDataType")
 	text := strings.ToUpper(ctx.GetTypeName().GetText())
