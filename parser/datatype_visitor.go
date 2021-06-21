@@ -17,13 +17,11 @@
 package parser
 
 import (
-	"strings"
-
 	"github.com/zeromicro/ddl-parser/gen"
 )
 
 const (
-	invalidDataType DataType = iota
+	_ int = iota
 	LongVarBinary
 	LongVarChar
 	GeometryCollection
@@ -85,8 +83,56 @@ const (
 	LongText
 )
 
-// DataType describes the data type of the column in table
-type DataType int
+// DataType describes the data type and value of the column in table
+type DataType interface {
+	Type() int
+	// Value returns the values if the data type is Enum or Set
+	Value() []string
+}
+
+var _ DataType = (*NormalDataType)(nil)
+var _ DataType = (*EnumSetDataType)(nil)
+
+// NormalDataType describes the data type which not contains Enum and Set of column
+type NormalDataType struct {
+	tp int
+}
+
+// Type returns the data type of column
+func (n *NormalDataType) Type() int {
+	return n.tp
+}
+
+// Value returns nil default
+func (n *NormalDataType) Value() []string {
+	return nil
+}
+
+func with(tp int, value ...string) DataType {
+	if len(value) > 0 {
+		return &EnumSetDataType{
+			tp:    tp,
+			value: value,
+		}
+	}
+	return &NormalDataType{tp: tp}
+}
+
+// EnumSetDataType describes the data type  Enum and Set of column
+type EnumSetDataType struct {
+	tp    int
+	value []string
+}
+
+// Type returns the data type of column
+func (e *EnumSetDataType) Type() int {
+	return e.tp
+}
+
+// Value returns the value of data type Enum and Set
+func (e *EnumSetDataType) Value() []string {
+	return e.value
+}
 
 // VisitDataType visits data type by switch-case
 func (v *Visitor) VisitDataType(ctx gen.IDataTypeContext) DataType {
@@ -112,210 +158,220 @@ func (v *Visitor) VisitDataType(ctx gen.IDataTypeContext) DataType {
 	}
 
 	v.panicWithExpr(ctx.GetStart(), "invalid data type: "+ctx.GetText())
-	return invalidDataType
+	return nil
 }
 
 // VisitStringDataType visits a parse tree produced by MySqlParser#stringDataType.
 func (v *Visitor) VisitStringDataType(ctx *gen.StringDataTypeContext) DataType {
 	v.trace(`VisitStringDataType`)
-	text := strings.ToUpper(ctx.GetTypeName().GetText())
+	text := parseToken(ctx.GetTypeName(), withUpperCase(), withTrim("`"))
 	switch text {
 	case `CHAR`:
-		return Char
+		return with(Char)
 	case `CHARACTER`:
-		return Character
+		return with(Character)
 	case `VARCHAR`:
-		return VarChar
+		return with(VarChar)
 	case `TINYTEXT`:
-		return TinyText
+		return with(TinyText)
 	case `TEXT`:
-		return Text
+		return with(Text)
 	case `MEDIUMTEXT`:
-		return MediumText
+		return with(MediumText)
 	case `LONGTEXT`:
-		return LongText
+		return with(LongText)
 	case `NCHAR`:
-		return NChar
+		return with(NChar)
 	case `NVARCHAR`:
-		return NVarChar
+		return with(NVarChar)
 	case `LONG`:
-		return LongVarChar
+		return with(LongVarChar)
 	}
 
 	v.panicWithExpr(ctx.GetTypeName(), "invalid data type: "+text)
-	return invalidDataType
+	return nil
 }
 
 // VisitNationalStringDataType visits a parse tree produced by MySqlParser#nationalVaryingStringDataType.
 func (v *Visitor) VisitNationalStringDataType(ctx *gen.NationalStringDataTypeContext) DataType {
 	v.trace(`VisitNationalStringDataType`)
-	text := strings.ToUpper(ctx.GetTypeName().GetText())
+	text := parseToken(ctx.GetTypeName(), withUpperCase(), withTrim("`"))
 	switch text {
 	case `VARCHAR`:
-		return NVarChar
+		return with(NVarChar)
 	case `CHARACTER`:
-		return NChar
+		return with(NChar)
 	}
 
 	v.panicWithExpr(ctx.GetTypeName(), "invalid data type: "+text)
-	return invalidDataType
+	return nil
 }
 
 // VisitNationalVaryingStringDataType visits a parse tree produced by MySqlParser#nationalVaryingStringDataType.
 func (v *Visitor) VisitNationalVaryingStringDataType(_ *gen.NationalVaryingStringDataTypeContext) DataType {
 	v.trace("VisitNationalVaryingStringDataType")
-	return NVarChar
+	return with(NVarChar)
 }
 
 // VisitDimensionDataType visits a parse tree produced by MySqlParser#dimensionDataType.
 func (v *Visitor) VisitDimensionDataType(ctx *gen.DimensionDataTypeContext) DataType {
 	v.trace("VisitDimensionDataType")
-	text := strings.ToUpper(ctx.GetTypeName().GetText())
+	text := parseToken(ctx.GetTypeName(), withUpperCase(), withTrim("`"))
 	switch text {
 	case `BIT`:
-		return Bit
+		return with(Bit)
 	case `TIME`:
-		return Time
+		return with(Time)
 	case `TIMESTAMP`:
-		return Timestamp
+		return with(Timestamp)
 	case `DATETIME`:
-		return DateTime
+		return with(DateTime)
 	case `BINARY`:
-		return Binary
+		return with(Binary)
 	case `VARBINARY`:
-		return VarBinary
+		return with(VarBinary)
 	case `BLOB`:
-		return Blob
+		return with(Blob)
 	case `YEAR`:
-		return Year
+		return with(Year)
 	case `DECIMAL`:
-		return Decimal
+		return with(Decimal)
 	case `DEC`:
-		return Dec
+		return with(Dec)
 	case `FIXED`:
-		return Fixed
+		return with(Fixed)
 	case `NUMERIC`:
-		return Numeric
+		return with(Numeric)
 	case `FLOAT`:
-		return Float
+		return with(Float)
 	case `FLOAT4`:
-		return Float4
+		return with(Float4)
 	case `FLOAT8`:
-		return Float8
+		return with(Float8)
 	case `DOUBLE`:
-		return Double
+		return with(Double)
 	case `REAL`:
-		return Real
+		return with(Real)
 	case `TINYINT`:
-		return TinyInt
+		return with(TinyInt)
 	case `SMALLINT`:
-		return SmallInt
+		return with(SmallInt)
 	case `MEDIUMINT`:
-		return MediumInt
+		return with(MediumInt)
 	case `INT`:
-		return Int
+		return with(Int)
 	case `INTEGER`:
-		return Integer
+		return with(Integer)
 	case `BIGINT`:
-		return BigInt
+		return with(BigInt)
 	case `MIDDLEINT`:
-		return MiddleInt
+		return with(MiddleInt)
 	case `INT1`:
-		return Int1
+		return with(Int1)
 	case `INT2`:
-		return Int2
+		return with(Int2)
 	case `INT3`:
-		return Int3
+		return with(Int3)
 	case `INT4`:
-		return Int4
+		return with(Int4)
 	case `INT8`:
-		return Int8
+		return with(Int8)
 	}
 
 	v.panicWithExpr(ctx.GetTypeName(), "invalid data type: "+text)
-	return invalidDataType
+	return nil
 }
 
 // VisitSimpleDataType visits a parse tree produced by MySqlParser#simpleDataType.
 func (v *Visitor) VisitSimpleDataType(ctx *gen.SimpleDataTypeContext) DataType {
 	v.trace("VisitSimpleDataType")
-	text := strings.ToUpper(ctx.GetTypeName().GetText())
+	text := parseToken(ctx.GetTypeName(), withUpperCase(), withTrim("`"))
 	switch text {
 	case `DATE`:
-		return Date
+		return with(Date)
 	case `TINYBLOB`:
-		return TinyBlob
+		return with(TinyBlob)
 	case `MEDIUMBLOB`:
-		return MediumBlob
+		return with(MediumBlob)
 	case `LONGBLOB`:
-		return LongBlob
+		return with(LongBlob)
 	case `BOOL`:
-		return Bool
+		return with(Bool)
 	case `BOOLEAN`:
-		return Boolean
+		return with(Boolean)
 	case `SERIAL`:
-		return Serial
+		return with(Serial)
 	}
 
 	v.panicWithExpr(ctx.GetTypeName(), "invalid data type: "+text)
-	return invalidDataType
+	return nil
 }
 
 // VisitCollectionDataType visits a parse tree produced by MySqlParser#collectionDataType.
-// todo(anqiansong) enum/set value
 func (v *Visitor) VisitCollectionDataType(ctx *gen.CollectionDataTypeContext) DataType {
 	v.trace("VisitCollectionDataType")
-	text := strings.ToUpper(ctx.GetTypeName().GetText())
+	text := parseToken(ctx.GetTypeName(), withUpperCase(), withTrim("`"))
+	var values []string
+	if ctx.CollectionOptions() != nil {
+		optionsCtx, ok := ctx.CollectionOptions().(*gen.CollectionOptionsContext)
+		if ok {
+			for _, e := range optionsCtx.AllSTRING_LITERAL() {
+				value := parseTerminalNode(e, withTrim("`"), withTrim(`"`), withTrim(`'`))
+				values = append(values, value)
+			}
+		}
+	}
+
 	switch text {
 	case `ENUM`:
-		return Enum
+		return with(Enum, values...)
 	case `SET`:
-		return Set
+		return with(Set, values...)
 	}
 
 	v.panicWithExpr(ctx.GetTypeName(), "invalid data type: "+text)
-	return invalidDataType
+	return nil
 }
 
 // VisitSpatialDataType visits a parse tree produced by MySqlParser#spatialDataType.
 func (v *Visitor) VisitSpatialDataType(ctx *gen.SpatialDataTypeContext) DataType {
 	v.trace("VisitSpatialDataType")
-	text := strings.ToUpper(ctx.GetTypeName().GetText())
+	text := parseToken(ctx.GetTypeName(), withUpperCase(), withTrim("`"))
 	switch text {
 	case `GEOMETRYCOLLECTION`:
-		return GeometryCollection
+		return with(GeometryCollection)
 	case `GEOMCOLLECTION`:
-		return GeomCollection
+		return with(GeomCollection)
 	case `LINESTRING`:
-		return LineString
+		return with(LineString)
 	case `MULTILINESTRING`:
-		return MultiLineString
+		return with(MultiLineString)
 	case `MULTIPOINT`:
-		return MultiPoint
+		return with(MultiPoint)
 	case `MULTIPOLYGON`:
-		return MultiPolygon
+		return with(MultiPolygon)
 	case `POINT`:
-		return Point
+		return with(Point)
 	case `POLYGON`:
-		return Polygon
+		return with(Polygon)
 	case `JSON`:
-		return Json
+		return with(Json)
 	case `GEOMETRY`:
-		return Geometry
+		return with(Geometry)
 	}
 
 	v.panicWithExpr(ctx.GetTypeName(), "invalid data type: "+text)
-	return invalidDataType
+	return nil
 }
 
 // VisitLongVarcharDataType visits a parse tree produced by MySqlParser#longVarcharDataType.
 func (v *Visitor) VisitLongVarcharDataType(_ *gen.LongVarcharDataTypeContext) DataType {
 	v.trace("VisitLongVarcharDataType")
-	return LongVarChar
+	return with(LongVarChar)
 }
 
 // VisitLongVarbinaryDataType visits a parse tree produced by MySqlParser#longVarbinaryDataType.
 func (v *Visitor) VisitLongVarbinaryDataType(_ *gen.LongVarbinaryDataTypeContext) DataType {
 	v.trace("VisitLongVarbinaryDataType")
-	return LongVarBinary
+	return with(LongVarBinary)
 }

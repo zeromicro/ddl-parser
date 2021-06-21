@@ -6,3 +6,4 @@
 /grammar/MySqlParser.interp
 /grammar/MySqlLexer.tokens
 /grammar/MySqlLexer.interp
+/gen/MySqlLexer.java

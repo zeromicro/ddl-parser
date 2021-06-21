@@ -30,7 +30,7 @@ func TestDataType(t *testing.T) {
 	}
 
 	t.Run("stringDataType", func(t *testing.T) {
-		testData := map[string]DataType{
+		testData := map[string]int{
 			`CHAR(10)`:      Char,
 			`CHARACTER(10)`: Character,
 			`VARCHAR(10)`:   VarChar,
@@ -51,7 +51,7 @@ func TestDataType(t *testing.T) {
 	})
 
 	t.Run("nationalStringDataType", func(t *testing.T) {
-		testData := map[string]DataType{
+		testData := map[string]int{
 			`NATIONAL VARCHAR(255)`:          NVarChar,
 			`NATIONAL CHARACTER(255) BINARY`: NChar,
 			`NCHAR VARCHAR(255) BINARY`:      NVarChar,
@@ -66,7 +66,7 @@ func TestDataType(t *testing.T) {
 	})
 
 	t.Run("nationalVaryingStringDataType", func(t *testing.T) {
-		testData := map[string]DataType{
+		testData := map[string]int{
 			`NATIONAL CHAR VARYING (255)`:             NVarChar,
 			`NATIONAL CHAR VARYING (255) BINARY`:      NVarChar,
 			`NATIONAL CHARACTER VARYING (255)`:        NVarChar,
@@ -81,7 +81,7 @@ func TestDataType(t *testing.T) {
 	})
 
 	t.Run("dimensionDataType", func(t *testing.T) {
-		testData := map[string]DataType{
+		testData := map[string]int{
 			`TINYINT(1)`:                       TinyInt,
 			`TINYINT(1) SIGNED`:                TinyInt,
 			`TINYINT(1) UNSIGNED`:              TinyInt,
@@ -186,7 +186,7 @@ func TestDataType(t *testing.T) {
 	})
 
 	t.Run("simpleDataType", func(t *testing.T) {
-		testData := map[string]DataType{
+		testData := map[string]int{
 			`DATE`:       Date,
 			`TINYBLOB`:   TinyBlob,
 			`MEDIUMBLOB`: MediumBlob,
@@ -204,21 +204,30 @@ func TestDataType(t *testing.T) {
 	})
 
 	t.Run("collectionDataType", func(t *testing.T) {
-		testData := map[string]DataType{
-			`ENUM('1','2')`:       Enum,
-			`SET('A','B')`:        Set,
-			`SET('A','B') BINARY`: Set,
+		testData := map[string]EnumSetDataType{
+			`ENUM('1','2')`: {
+				tp:    Enum,
+				value: []string{"1", "2"},
+			},
+			`SET('A','B')`: {
+				tp:    Set,
+				value: []string{"A", "B"},
+			},
+			`SET('A','B') BINARY`: {
+				tp:    Set,
+				value: []string{"A", "B"},
+			},
 		}
 
-		for sql, dataType := range testData {
+		for sql, e := range testData {
 			actual, err := p.testMysqlSyntax("test.sql", accept, sql)
 			assert.Nil(t, err)
-			assertTypeEqual(t, dataType, actual)
+			assertEnumTypeEqual(t, e.tp, e.value, actual)
 		}
 	})
 
 	t.Run("spatialDataType", func(t *testing.T) {
-		testData := map[string]DataType{
+		testData := map[string]int{
 			`GEOMETRYCOLLECTION`: GeometryCollection,
 			`GEOMCOLLECTION`:     GeomCollection,
 			`LINESTRING`:         LineString,
@@ -239,7 +248,7 @@ func TestDataType(t *testing.T) {
 	})
 
 	t.Run("longVarcharDataType ", func(t *testing.T) {
-		testData := map[string]DataType{
+		testData := map[string]int{
 			`LONG`:                LongVarChar,
 			`LONG VARCHAR`:        LongVarChar,
 			`LONG VARCHAR BINARY`: LongVarChar,
@@ -255,7 +264,7 @@ func TestDataType(t *testing.T) {
 	})
 
 	t.Run("longVarbinaryDataType ", func(t *testing.T) {
-		testData := map[string]DataType{
+		testData := map[string]int{
 			`LONG VARBINARY  `: LongVarBinary,
 		}
 
@@ -267,6 +276,11 @@ func TestDataType(t *testing.T) {
 	})
 }
 
-func assertTypeEqual(t *testing.T, expected DataType, actual interface{}) {
-	assert.Equal(t, expected, actual.(DataType))
+func assertTypeEqual(t *testing.T, expected int, actual interface{}) {
+	assert.Equal(t, expected, actual.(DataType).Type())
+}
+
+func assertEnumTypeEqual(t *testing.T, expectedType int, values []string, actual interface{}) {
+	assert.Equal(t, expectedType, actual.(DataType).Type())
+	assert.Equal(t, values, actual.(DataType).Value())
 }
