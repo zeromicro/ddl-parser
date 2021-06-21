@@ -64,3 +64,9 @@ func withLowerCase() parseOption {
 		return strings.ToLower(text)
 	}
 }
+
+func withReplacer(oldnew ...string) parseOption {
+	return func(text string) string {
+		return strings.NewReplacer(oldnew...).Replace(text)
+	}
+}
