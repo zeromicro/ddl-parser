@@ -23,7 +23,7 @@ import (
 	"github.com/zeromicro/ddl-parser/gen"
 )
 
-func TestDataType(t *testing.T) {
+func TestVisitor_VisitDataType(t *testing.T) {
 	p := NewParser(WithDebugMode(true))
 	accept := func(p *gen.MySqlParser, visitor *Visitor) interface{} {
 		return visitor.VisitDataType(p.DataType())
