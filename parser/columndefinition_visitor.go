@@ -65,6 +65,8 @@ func (v *Visitor) VisitColumnDefinition(ctx *gen.ColumnDefinitionContext) interf
 			constraint.Unique = v.VisitUniqueKeyColumnConstraint(tx)
 		case *gen.CommentColumnConstraintContext:
 			constraint.Comment = v.VisitCommentColumnConstraint(tx)
+		case *gen.ReferenceColumnConstraintContext:
+			v.panicWithExpr(tx.GetStart(), "Unsupported reference definition")
 		}
 	}
 	out.ColumnConstraint = &constraint
@@ -116,7 +118,7 @@ func (v *Visitor) VisitUniqueKeyColumnConstraint(_ *gen.UniqueKeyColumnConstrain
 // VisitCommentColumnConstraint visits a parse tree produced by MySqlParser#commentColumnConstraint.
 func (v *Visitor) VisitCommentColumnConstraint(ctx *gen.CommentColumnConstraintContext) string {
 	v.trace("VisitCommentColumnConstraint")
-	value := parseTerminalNode(ctx.STRING_LITERAL(), withTrim("`"), withTrim(`"`), withTrim(`'`), withReplacer(`\r`, `\n`))
+	value := parseTerminalNode(ctx.STRING_LITERAL(), withTrim("`"), withTrim(`"`), withTrim(`'`), withReplacer(`\r`, "", `\n`, ""))
 	return value
 }
 
