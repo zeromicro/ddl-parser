@@ -73,4 +73,32 @@ func TestVisitor_VisitColumnDefinition(t *testing.T) {
 		Key:             false,
 		Unique:          true,
 	}, *columnDefinition.ColumnConstraint)
+
+	v, err = p.testMysqlSyntax("test.sql", accept, `bigint(20) NULL DEFAULT NULL AUTO_INCREMENT UNIQUE KEY`)
+	assert.Nil(t, err)
+	assert.NotNil(t, v)
+	columnDefinition = v.(*ColumnDefinition)
+
+	assert.Equal(t, ColumnConstraint{
+		NotNull:         false,
+		HasDefaultValue: false,
+		AutoIncrement:   true,
+		Primary:         false,
+		Key:             false,
+		Unique:          true,
+	}, *columnDefinition.ColumnConstraint)
+
+	v, err = p.testMysqlSyntax("test.sql", accept, `varchar(20) DEFAULT '' AUTO_INCREMENT UNIQUE KEY`)
+	assert.Nil(t, err)
+	assert.NotNil(t, v)
+	columnDefinition = v.(*ColumnDefinition)
+
+	assert.Equal(t, ColumnConstraint{
+		NotNull:         false,
+		HasDefaultValue: false,
+		AutoIncrement:   true,
+		Primary:         false,
+		Key:             false,
+		Unique:          true,
+	}, *columnDefinition.ColumnConstraint)
 }

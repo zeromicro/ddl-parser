@@ -16,7 +16,11 @@
 
 package parser
 
-import "github.com/zeromicro/ddl-parser/gen"
+import (
+	"strings"
+
+	"github.com/zeromicro/ddl-parser/gen"
+)
 
 type ColumnDefinition struct {
 	DataType         DataType
@@ -84,8 +88,16 @@ func (v *Visitor) VisitNullColumnConstraint(ctx *gen.NullColumnConstraintContext
 }
 
 // VisitDefaultColumnConstraint visits a parse tree produced by MySqlParser#defaultColumnConstraint.
-func (v *Visitor) VisitDefaultColumnConstraint(_ *gen.DefaultColumnConstraintContext) bool {
+func (v *Visitor) VisitDefaultColumnConstraint(ctx *gen.DefaultColumnConstraintContext) bool {
 	v.trace("VisitDefaultColumnConstraint")
+	text := ctx.DefaultValue().GetText()
+	text = strings.Trim(text, "`")
+	text = strings.Trim(text, "'")
+	text = strings.NewReplacer("\r", "", "\n", "").Replace(text)
+	if strings.ToUpper(text) == "NULL" || len(text) == 0 {
+		return false
+	}
+
 	return true
 }
 
