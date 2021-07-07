@@ -62,6 +62,7 @@ func (v *Visitor) VisitIndexColumnNames(ctx *gen.IndexColumnNamesContext) []stri
 		if !ok {
 			continue
 		}
+
 		columns = append(columns, v.VisitIndexColumnName(indexCtx))
 	}
 
@@ -72,12 +73,18 @@ func (v *Visitor) VisitIndexColumnNames(ctx *gen.IndexColumnNamesContext) []stri
 func (v *Visitor) VisitIndexColumnName(ctx *gen.IndexColumnNameContext) string {
 	var column string
 	if ctx.Uid() != nil {
-		column = ctx.Uid().GetText()
-		column = strings.Trim(column, "`")
-		column = strings.NewReplacer("\r", "", "\n", "").Replace(column)
+		column = v.visitUid(ctx.Uid())
 	} else {
-		column = parseTerminalNode(ctx.STRING_LITERAL(), withTrim("`"), withReplacer("\r", "", "\n", ""))
+		column = parseTerminalNode(ctx.STRING_LITERAL(), withTrim("`"), withTrim("'"), withReplacer("\r", "", "\n", ""))
 	}
 
 	return column
+}
+
+func (v *Visitor) visitUid(ctx gen.IUidContext) string {
+	str := ctx.GetText()
+	str = strings.Trim(str, "`")
+	str = strings.Trim(str, "'")
+	str = strings.NewReplacer("\r", "", "\n", "").Replace(str)
+	return str
 }

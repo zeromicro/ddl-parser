@@ -38,27 +38,57 @@ func (v *Visitor) trace(msg ...interface{}) {
 
 func (v *Visitor) panic(line, column int, msg string) {
 	if len(v.prefix) == 0 {
-		panic(fmt.Errorf("%v:%v %s", line, column, msg))
+		err := fmt.Errorf("%v:%v %s", line, column, msg)
+		if v.debug {
+			v.logger.Error(err)
+		}
+
+		panic(err)
 		return
 	}
 
-	panic(fmt.Errorf("%v line %v:%v %s", v.prefix, line, column, msg))
+	err := fmt.Errorf("%v line %v:%v %s", v.prefix, line, column, msg)
+	if v.debug {
+		v.logger.Error(err)
+	}
+
+	panic(err)
 }
 
 func (v *Visitor) panicWithExpr(expr Token, msg string) {
 	if len(v.prefix) == 0 {
-		panic(fmt.Errorf("%v:%v %s", expr.GetLine(), expr.GetColumn(), msg))
+		err := fmt.Errorf("%v:%v %s", expr.GetLine(), expr.GetColumn(), msg)
+		if v.debug {
+			v.logger.Error(err)
+		}
+
+		panic(err)
 		return
 	}
 
-	panic(fmt.Errorf("%v line %v:%v %s", v.prefix, expr.GetLine(), expr.GetColumn(), msg))
+	err := fmt.Errorf("%v line %v:%v %s", v.prefix, expr.GetLine(), expr.GetColumn(), msg)
+	if v.debug {
+		v.logger.Error(err)
+	}
+
+	panic(err)
 }
 
 func (v *Visitor) panicWithExpected(expr Token, expected, actual string) {
 	if len(v.prefix) == 0 {
-		panic(fmt.Errorf("%v:%v expected %s, but found is %s", expr.GetLine(), expr.GetColumn(), expected, actual))
+		err := fmt.Errorf("%v:%v expected %s, but found is %s", expr.GetLine(), expr.GetColumn(), expected, actual)
+		if v.debug {
+			v.logger.Error(err)
+		}
+
+		panic(err)
 		return
 	}
 
-	panic(fmt.Errorf("%v line %v:%v expected %s, but found is %s", v.prefix, expr.GetLine(), expr.GetColumn(), expected, actual))
+	err := fmt.Errorf("%v line %v:%v expected %s, but found is %s", v.prefix, expr.GetLine(), expr.GetColumn(), expected, actual)
+	if v.debug {
+		v.logger.Error(err)
+	}
+
+	panic(err)
 }
