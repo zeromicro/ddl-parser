@@ -155,6 +155,7 @@ func TestVisitor_VisitCreateTable(t *testing.T) {
 					gender enum('男','女') not null default '男' comment '性别',
 					flag boolean not null default 'false' comment '标志位',
 					document JSON NOT NULL,
+					location POINT comment '地理位置',
 					primary key ('id'),
 					key 'name_idx' ('name'),
 					unique key 'class_mobile_uni' ('class_id','mobile')
@@ -245,6 +246,17 @@ func TestVisitor_VisitCreateTable(t *testing.T) {
 						},
 						ColumnConstraint: &ColumnConstraint{
 							NotNull: true,
+						},
+					},
+				},
+				{
+					Name: "location",
+					ColumnDefinition: &ColumnDefinition{
+						DataType: &EnumSetDataType{
+							tp: Point,
+						},
+						ColumnConstraint: &ColumnConstraint{
+							Comment: "地理位置",
 						},
 					},
 				},
