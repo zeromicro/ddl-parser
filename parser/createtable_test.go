@@ -148,7 +148,11 @@ func TestVisitor_VisitCreateTable(t *testing.T) {
 	t.Run("columnCreateTable_every_case", func(t *testing.T) {
 		v, err := p.testMysqlSyntax("test.sql", accept,
 			`create table if not exists foo (
-					id bigint(20) not null primary key auto_increment default 0 comment 'id'
+					id bigint(20) not null primary key auto_increment default 0 comment 'id',
+					name char(10) not null key default '' comment '姓名',
+					mobile varchar(15) not null unique default '' comment '手机号',
+					gender enum('男','女') not null default '男' comment '性别'
+					
 				)`)
 		assert.Nil(t, err)
 		table, ok := v.(*CreateTable)
@@ -166,6 +170,42 @@ func TestVisitor_VisitCreateTable(t *testing.T) {
 							AutoIncrement:   true,
 							Primary:         true,
 							Comment:         "id",
+						},
+					},
+				},
+				{
+					Name: "name",
+					ColumnDefinition: &ColumnDefinition{
+						DataType: &NormalDataType{tp: Char},
+						ColumnConstraint: &ColumnConstraint{
+							NotNull: true,
+							Key:     true,
+							Comment: "姓名",
+						},
+					},
+				},
+				{
+					Name: "mobile",
+					ColumnDefinition: &ColumnDefinition{
+						DataType: &NormalDataType{tp: VarChar},
+						ColumnConstraint: &ColumnConstraint{
+							NotNull: true,
+							Unique:  true,
+							Comment: "手机号",
+						},
+					},
+				},
+				{
+					Name: "gender",
+					ColumnDefinition: &ColumnDefinition{
+						DataType: &EnumSetDataType{
+							tp:    Enum,
+							value: []string{"男", "女"},
+						},
+						ColumnConstraint: &ColumnConstraint{
+							NotNull:         true,
+							HasDefaultValue: true,
+							Comment:         "性别",
 						},
 					},
 				},
