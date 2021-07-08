@@ -149,10 +149,15 @@ func TestVisitor_VisitCreateTable(t *testing.T) {
 		v, err := p.testMysqlSyntax("test.sql", accept,
 			`create table if not exists foo (
 					id bigint(20) not null primary key auto_increment default 0 comment 'id',
+					class_id varchar not null default '' comment '班级id',
 					name char(10) not null key default '' comment '姓名',
 					mobile varchar(15) not null unique default '' comment '手机号',
-					gender enum('男','女') not null default '男' comment '性别'
-					
+					gender enum('男','女') not null default '男' comment '性别',
+					flag boolean not null default 'false' comment '标志位',
+					document JSON NOT NULL,
+					primary key ('id'),
+					key 'name_idx' ('name'),
+					unique key 'class_mobile_uni' ('class_id','mobile')
 				)`)
 		assert.Nil(t, err)
 		table, ok := v.(*CreateTable)
@@ -170,6 +175,16 @@ func TestVisitor_VisitCreateTable(t *testing.T) {
 							AutoIncrement:   true,
 							Primary:         true,
 							Comment:         "id",
+						},
+					},
+				},
+				{
+					Name: "class_id",
+					ColumnDefinition: &ColumnDefinition{
+						DataType: &NormalDataType{tp: VarChar},
+						ColumnConstraint: &ColumnConstraint{
+							NotNull: true,
+							Comment: "班级id",
 						},
 					},
 				},
@@ -208,6 +223,38 @@ func TestVisitor_VisitCreateTable(t *testing.T) {
 							Comment:         "性别",
 						},
 					},
+				},
+				{
+					Name: "flag",
+					ColumnDefinition: &ColumnDefinition{
+						DataType: &EnumSetDataType{
+							tp: Boolean,
+						},
+						ColumnConstraint: &ColumnConstraint{
+							NotNull:         true,
+							HasDefaultValue: true,
+							Comment:         "标志位",
+						},
+					},
+				},
+				{
+					Name: "document",
+					ColumnDefinition: &ColumnDefinition{
+						DataType: &EnumSetDataType{
+							tp: Json,
+						},
+						ColumnConstraint: &ColumnConstraint{
+							NotNull: true,
+						},
+					},
+				},
+			},
+			Constraints: []*TableConstraint{
+				{
+					ColumnPrimaryKey: []string{"id"},
+				},
+				{
+					ColumnUniqueKey: []string{"class_id", "mobile"},
 				},
 			},
 		}, table)
