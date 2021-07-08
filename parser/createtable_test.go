@@ -146,7 +146,31 @@ func TestVisitor_VisitCreateTable(t *testing.T) {
 	})
 
 	t.Run("columnCreateTable_every_case", func(t *testing.T) {
-
+		v, err := p.testMysqlSyntax("test.sql", accept,
+			`create table if not exists foo (
+					id bigint(20) not null primary key auto_increment default 0 comment 'id'
+				)`)
+		assert.Nil(t, err)
+		table, ok := v.(*CreateTable)
+		assert.True(t, ok)
+		assertCreateTableEqual(t, &CreateTable{
+			Name: "foo",
+			Columns: []*ColumnDeclaration{
+				{
+					Name: "id",
+					ColumnDefinition: &ColumnDefinition{
+						DataType: &NormalDataType{tp: BigInt},
+						ColumnConstraint: &ColumnConstraint{
+							NotNull:         true,
+							HasDefaultValue: true,
+							AutoIncrement:   true,
+							Primary:         true,
+							Comment:         "id",
+						},
+					},
+				},
+			},
+		}, table)
 	})
 }
 
