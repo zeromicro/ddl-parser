@@ -17,6 +17,7 @@
 package parser
 
 import (
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -43,7 +44,7 @@ func TestVisitor_VisitCreateTable(t *testing.T) {
 		assert.Error(t, err)
 	})
 
-	t.Run("columnCreateTable", func(t *testing.T) {
+	t.Run("columnCreateTable_normal_case", func(t *testing.T) {
 		v, err := p.testMysqlSyntax("test.sql", accept,
 			"CREATE TABLE `user` (\n  "+
 				"`id` bigint NOT NULL AUTO_INCREMENT,\n  "+
@@ -58,10 +59,126 @@ func TestVisitor_VisitCreateTable(t *testing.T) {
 				"UNIQUE KEY `number_unique2` (`number`"+
 				") USING BTREE\n) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;")
 		assert.Nil(t, err)
-		_, ok := v.(*CreateTable)
+		table, ok := v.(*CreateTable)
 		assert.True(t, ok)
-		assert.Equal(t, true, func() bool {
-			return true
-		})
+		expected := &CreateTable{
+			Name: "user",
+			Columns: []*ColumnDeclaration{
+				{
+					Name: "id",
+					ColumnDefinition: &ColumnDefinition{
+						DataType: &NormalDataType{tp: BigInt},
+						ColumnConstraint: &ColumnConstraint{
+							NotNull:       true,
+							AutoIncrement: true,
+						},
+					},
+				},
+				{
+					Name: "number",
+					ColumnDefinition: &ColumnDefinition{
+						DataType: &NormalDataType{tp: VarChar},
+						ColumnConstraint: &ColumnConstraint{
+							NotNull: true,
+							Comment: "学号",
+						},
+					},
+				},
+				{
+					Name: "name",
+					ColumnDefinition: &ColumnDefinition{
+						DataType: &NormalDataType{tp: VarChar},
+						ColumnConstraint: &ColumnConstraint{
+							Comment: "用户名称",
+						},
+					},
+				},
+				{
+					Name: "password",
+					ColumnDefinition: &ColumnDefinition{
+						DataType: &NormalDataType{tp: VarChar},
+						ColumnConstraint: &ColumnConstraint{
+							NotNull: true,
+							Comment: "用户密码",
+						},
+					},
+				},
+				{
+					Name: "gender",
+					ColumnDefinition: &ColumnDefinition{
+						DataType: &NormalDataType{tp: Char},
+						ColumnConstraint: &ColumnConstraint{
+							NotNull: true,
+							Comment: "男｜女｜未公开",
+						},
+					},
+				},
+				{
+					Name: "create_time",
+					ColumnDefinition: &ColumnDefinition{
+						DataType:         &NormalDataType{tp: Timestamp},
+						ColumnConstraint: &ColumnConstraint{},
+					},
+				},
+				{
+					Name: "update_time",
+					ColumnDefinition: &ColumnDefinition{
+						DataType: &NormalDataType{tp: Timestamp},
+						ColumnConstraint: &ColumnConstraint{
+							HasDefaultValue: true,
+						},
+					},
+				},
+			},
+			Constraints: []*TableConstraint{
+				{
+					ColumnPrimaryKey: []string{"id"},
+				},
+				{
+					ColumnUniqueKey: []string{"number"},
+				},
+				{
+					ColumnUniqueKey: []string{"number"},
+				},
+			},
+		}
+		assertCreateTableEqual(t, expected, table)
 	})
+
+	t.Run("columnCreateTable_every_case", func(t *testing.T) {
+
+	})
+}
+
+func assertCreateTableEqual(t *testing.T, expected, actual *CreateTable) {
+	assert.Equal(t, expected.Name, actual.Name)
+	assert.Equal(t, len(expected.Columns), len(actual.Columns))
+	sort.SliceStable(expected.Columns, func(i, j int) bool {
+		return expected.Columns[i].Name < expected.Columns[j].Name
+	})
+	sort.SliceStable(actual.Columns, func(i, j int) bool {
+		return actual.Columns[i].Name < actual.Columns[j].Name
+	})
+
+	for i, expectedColumn := range expected.Columns {
+		actualColumn := actual.Columns[i]
+		assert.Equal(t, expectedColumn.Name, actualColumn.Name)
+		assertColumnDefinition(t, expectedColumn.ColumnDefinition, actualColumn.ColumnDefinition)
+	}
+
+	for i, expectedConstraint := range expected.Constraints {
+		actualConstraint := expected.Constraints[i]
+		assert.Equal(t, *expectedConstraint, *actualConstraint)
+		assert.Equal(t, expectedConstraint, actualConstraint)
+	}
+}
+
+func assertColumnDefinition(t *testing.T, expected, actual *ColumnDefinition) {
+	assertDataType(t, expected.DataType, actual.DataType)
+	assert.Equal(t, *expected.ColumnConstraint, *actual.ColumnConstraint)
+}
+
+func assertDataType(t *testing.T, expected, actual DataType) {
+	assert.Equal(t, expected.Type(), actual.Type())
+	assert.Equal(t, expected.Value(), actual.Value())
 }
