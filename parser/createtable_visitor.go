@@ -39,23 +39,25 @@ type createDefinition struct {
 	TableConstraint   *TableConstraint
 }
 
-// VisitCreateTable visits a parse tree produced by MySqlParser#createTable.
-func (v *Visitor) VisitCreateTable(ctx gen.ICreateTableContext) *CreateTable {
+// visitCreateTable visits a parse tree produced by MySqlParser#createTable.
+func (v *Visitor) visitCreateTable(ctx gen.ICreateTableContext) *CreateTable {
+	v.trace("VisitCreateTable")
 	switch tx := ctx.(type) {
 	case *gen.CopyCreateTableContext:
 		v.panicWithExpr(tx.GetStart(), "Unsupported creating a table by copying from another table")
 	case *gen.QueryCreateTableContext:
 		v.panicWithExpr(tx.GetStart(), "Unsupported creating a table by querying from another table")
 	case *gen.ColumnCreateTableContext:
-		return v.VisitColumnCreateTable(tx)
+		return v.visitColumnCreateTable(tx)
 	}
 
 	v.panicWithExpr(ctx.GetStart(), "Unknown creating a table")
 	return nil
 }
 
-// VisitColumnCreateTable visits a parse tree produced by MySqlParser#columnCreateTable.
-func (v *Visitor) VisitColumnCreateTable(ctx *gen.ColumnCreateTableContext) *CreateTable {
+// visitColumnCreateTable visits a parse tree produced by MySqlParser#columnCreateTable.
+func (v *Visitor) visitColumnCreateTable(ctx *gen.ColumnCreateTableContext) *CreateTable {
+	v.trace("VisitColumnCreateTable")
 	var ret CreateTable
 	tableName := ctx.TableName().GetText()
 	tableName = strings.Trim(tableName, "`")
@@ -64,7 +66,7 @@ func (v *Visitor) VisitColumnCreateTable(ctx *gen.ColumnCreateTableContext) *Cre
 	ret.Name = tableName
 	if ctx.CreateDefinitions() != nil {
 		if createDefinitionsContext, ok := ctx.CreateDefinitions().(*gen.CreateDefinitionsContext); ok {
-			definitions := v.VisitCreateDefinitions(createDefinitionsContext)
+			definitions := v.visitCreateDefinitions(createDefinitionsContext)
 			v.convertCreateDefinition(definitions, &ret)
 		}
 	}
@@ -72,8 +74,9 @@ func (v *Visitor) VisitColumnCreateTable(ctx *gen.ColumnCreateTableContext) *Cre
 	return &ret
 }
 
-// VisitCreateDefinitions visits a parse tree produced by MySqlParser#createDefinitions.
-func (v *Visitor) VisitCreateDefinitions(ctx *gen.CreateDefinitionsContext) []*createDefinition {
+// visitCreateDefinitions visits a parse tree produced by MySqlParser#createDefinitions.
+func (v *Visitor) visitCreateDefinitions(ctx *gen.CreateDefinitionsContext) []*createDefinition {
+	v.trace("VisitCreateDefinitions")
 	var ret []*createDefinition
 	for _, e := range ctx.AllCreateDefinition() {
 		data := v.VisitCreateDefinition(e)
@@ -97,6 +100,7 @@ func (v *Visitor) VisitCreateDefinitions(ctx *gen.CreateDefinitionsContext) []*c
 
 // VisitCreateDefinition visits a parse tree produced by MySqlParser#createDefinition.
 func (v *Visitor) VisitCreateDefinition(ctx gen.ICreateDefinitionContext) interface{} {
+	v.trace("VisitCreateDefinition")
 	switch tx := ctx.(type) {
 	case *gen.ColumnDeclarationContext:
 		var ret ColumnDeclaration
@@ -114,7 +118,7 @@ func (v *Visitor) VisitCreateDefinition(ctx gen.ICreateDefinitionContext) interf
 	case *gen.ConstraintDeclarationContext:
 		if tx.TableConstraint() != nil {
 			if constraintCtx, ok := tx.TableConstraint().(*gen.TableConstraintContext); ok {
-				return v.VisitTableConstraint(constraintCtx)
+				return v.visitTableConstraint(constraintCtx)
 			}
 		}
 	}
@@ -131,4 +135,34 @@ func (v *Visitor) convertCreateDefinition(list []*createDefinition, table *Creat
 			table.Constraints = append(table.Constraints, e.TableConstraint)
 		}
 	}
+}
+
+type Table struct {
+	Name        string
+	Columns     []*Column
+	Constraints []*TableConstraint
+}
+
+type Column struct {
+	Name       string
+	DataType   DataType
+	Constraint *ColumnConstraint
+}
+
+func (c *CreateTable) Convert() *Table {
+	var ret Table
+	ret.Name = c.Name
+	for _, e := range c.Columns {
+		definition := e.ColumnDefinition
+		var data Column
+		data.Name = e.Name
+		if definition != nil {
+			data.DataType = definition.DataType
+			data.Constraint = definition.ColumnConstraint
+		}
+		ret.Columns = append(ret.Columns, &data)
+	}
+	ret.Constraints = c.Constraints
+
+	return &ret
 }

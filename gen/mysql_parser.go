@@ -14,6 +14,7 @@
  * copies or substantial portions of the Software.
  */
 
+// Code generated from /Users/anqiansong/goland/go/ddl-parser/grammar/MySqlParser.g4 by ANTLR 4.9.1. DO NOT EDIT.
 
 package gen // MySqlParser
 import (

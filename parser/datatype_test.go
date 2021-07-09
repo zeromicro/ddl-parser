@@ -26,7 +26,7 @@ import (
 func TestVisitor_VisitDataType(t *testing.T) {
 	p := NewParser(WithDebugMode(true))
 	accept := func(p *gen.MySqlParser, visitor *Visitor) interface{} {
-		return visitor.VisitDataType(p.DataType())
+		return visitor.visitDataType(p.DataType())
 	}
 
 	t.Run("stringDataType", func(t *testing.T) {

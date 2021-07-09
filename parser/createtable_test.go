@@ -28,7 +28,7 @@ func TestVisitor_VisitCreateTable(t *testing.T) {
 	p := NewParser(WithDebugMode(true))
 	accept := func(p *gen.MySqlParser, visitor *Visitor) interface{} {
 		ctx := p.CreateTable()
-		return visitor.VisitCreateTable(ctx)
+		return visitor.visitCreateTable(ctx)
 	}
 
 	t.Run("copyCreateTableContext", func(t *testing.T) {
@@ -79,8 +79,9 @@ func TestVisitor_VisitCreateTable(t *testing.T) {
 					ColumnDefinition: &ColumnDefinition{
 						DataType: &NormalDataType{tp: VarChar},
 						ColumnConstraint: &ColumnConstraint{
-							NotNull: true,
-							Comment: "学号",
+							NotNull:         true,
+							Comment:         "学号",
+							HasDefaultValue: true,
 						},
 					},
 				},
@@ -98,8 +99,9 @@ func TestVisitor_VisitCreateTable(t *testing.T) {
 					ColumnDefinition: &ColumnDefinition{
 						DataType: &NormalDataType{tp: VarChar},
 						ColumnConstraint: &ColumnConstraint{
-							NotNull: true,
-							Comment: "用户密码",
+							NotNull:         true,
+							Comment:         "用户密码",
+							HasDefaultValue: true,
 						},
 					},
 				},
@@ -184,8 +186,9 @@ func TestVisitor_VisitCreateTable(t *testing.T) {
 					ColumnDefinition: &ColumnDefinition{
 						DataType: &NormalDataType{tp: VarChar},
 						ColumnConstraint: &ColumnConstraint{
-							NotNull: true,
-							Comment: "班级id",
+							NotNull:         true,
+							Comment:         "班级id",
+							HasDefaultValue: true,
 						},
 					},
 				},
@@ -194,9 +197,10 @@ func TestVisitor_VisitCreateTable(t *testing.T) {
 					ColumnDefinition: &ColumnDefinition{
 						DataType: &NormalDataType{tp: Char},
 						ColumnConstraint: &ColumnConstraint{
-							NotNull: true,
-							Key:     true,
-							Comment: "姓名",
+							NotNull:         true,
+							Key:             true,
+							Comment:         "姓名",
+							HasDefaultValue: true,
 						},
 					},
 				},
@@ -205,9 +209,10 @@ func TestVisitor_VisitCreateTable(t *testing.T) {
 					ColumnDefinition: &ColumnDefinition{
 						DataType: &NormalDataType{tp: VarChar},
 						ColumnConstraint: &ColumnConstraint{
-							NotNull: true,
-							Unique:  true,
-							Comment: "手机号",
+							NotNull:         true,
+							Unique:          true,
+							Comment:         "手机号",
+							HasDefaultValue: true,
 						},
 					},
 				},

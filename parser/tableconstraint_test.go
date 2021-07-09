@@ -28,7 +28,7 @@ func TestVisitor_VisitTableConstraint(t *testing.T) {
 	p := NewParser(WithDebugMode(true))
 	accept := func(p *gen.MySqlParser, visitor *Visitor) interface{} {
 		ctx := p.TableConstraint()
-		return visitor.VisitTableConstraint(ctx)
+		return visitor.visitTableConstraint(ctx)
 	}
 
 	t.Run("uniqueKeyTableConstraint", func(t *testing.T) {

@@ -134,35 +134,36 @@ func (e *EnumSetDataType) Value() []string {
 	return e.value
 }
 
-// VisitDataType visits data type by switch-case
-func (v *Visitor) VisitDataType(ctx gen.IDataTypeContext) DataType {
+// visitDataType visits data type by switch-case
+func (v *Visitor) visitDataType(ctx gen.IDataTypeContext) DataType {
+	v.trace("VisitDataType")
 	switch t := ctx.(type) {
 	case *gen.StringDataTypeContext:
-		return v.VisitStringDataType(t)
+		return v.visitStringDataType(t)
 	case *gen.NationalStringDataTypeContext:
-		return v.VisitNationalStringDataType(t)
+		return v.visitNationalStringDataType(t)
 	case *gen.NationalVaryingStringDataTypeContext:
-		return v.VisitNationalVaryingStringDataType(t)
+		return v.visitNationalVaryingStringDataType(t)
 	case *gen.DimensionDataTypeContext:
-		return v.VisitDimensionDataType(t)
+		return v.visitDimensionDataType(t)
 	case *gen.SimpleDataTypeContext:
-		return v.VisitSimpleDataType(t)
+		return v.visitSimpleDataType(t)
 	case *gen.CollectionDataTypeContext:
-		return v.VisitCollectionDataType(t)
+		return v.visitCollectionDataType(t)
 	case *gen.SpatialDataTypeContext:
-		return v.VisitSpatialDataType(t)
+		return v.visitSpatialDataType(t)
 	case *gen.LongVarcharDataTypeContext:
-		return v.VisitLongVarcharDataType(t)
+		return v.visitLongVarcharDataType(t)
 	case *gen.LongVarbinaryDataTypeContext:
-		return v.VisitLongVarbinaryDataType(t)
+		return v.visitLongVarbinaryDataType(t)
 	}
 
 	v.panicWithExpr(ctx.GetStart(), "invalid data type: "+ctx.GetText())
 	return nil
 }
 
-// VisitStringDataType visits a parse tree produced by MySqlParser#stringDataType.
-func (v *Visitor) VisitStringDataType(ctx *gen.StringDataTypeContext) DataType {
+// visitStringDataType visits a parse tree produced by MySqlParser#stringDataType.
+func (v *Visitor) visitStringDataType(ctx *gen.StringDataTypeContext) DataType {
 	v.trace(`VisitStringDataType`)
 	text := parseToken(ctx.GetTypeName(), withUpperCase(), withTrim("`"))
 	switch text {
@@ -192,8 +193,8 @@ func (v *Visitor) VisitStringDataType(ctx *gen.StringDataTypeContext) DataType {
 	return nil
 }
 
-// VisitNationalStringDataType visits a parse tree produced by MySqlParser#nationalVaryingStringDataType.
-func (v *Visitor) VisitNationalStringDataType(ctx *gen.NationalStringDataTypeContext) DataType {
+// visitNationalStringDataType visits a parse tree produced by MySqlParser#nationalVaryingStringDataType.
+func (v *Visitor) visitNationalStringDataType(ctx *gen.NationalStringDataTypeContext) DataType {
 	v.trace(`VisitNationalStringDataType`)
 	text := parseToken(ctx.GetTypeName(), withUpperCase(), withTrim("`"))
 	switch text {
@@ -207,14 +208,14 @@ func (v *Visitor) VisitNationalStringDataType(ctx *gen.NationalStringDataTypeCon
 	return nil
 }
 
-// VisitNationalVaryingStringDataType visits a parse tree produced by MySqlParser#nationalVaryingStringDataType.
-func (v *Visitor) VisitNationalVaryingStringDataType(_ *gen.NationalVaryingStringDataTypeContext) DataType {
+// visitNationalVaryingStringDataType visits a parse tree produced by MySqlParser#nationalVaryingStringDataType.
+func (v *Visitor) visitNationalVaryingStringDataType(_ *gen.NationalVaryingStringDataTypeContext) DataType {
 	v.trace("VisitNationalVaryingStringDataType")
 	return with(NVarChar)
 }
 
-// VisitDimensionDataType visits a parse tree produced by MySqlParser#dimensionDataType.
-func (v *Visitor) VisitDimensionDataType(ctx *gen.DimensionDataTypeContext) DataType {
+// visitDimensionDataType visits a parse tree produced by MySqlParser#dimensionDataType.
+func (v *Visitor) visitDimensionDataType(ctx *gen.DimensionDataTypeContext) DataType {
 	v.trace("VisitDimensionDataType")
 	text := parseToken(ctx.GetTypeName(), withUpperCase(), withTrim("`"))
 	switch text {
@@ -282,8 +283,8 @@ func (v *Visitor) VisitDimensionDataType(ctx *gen.DimensionDataTypeContext) Data
 	return nil
 }
 
-// VisitSimpleDataType visits a parse tree produced by MySqlParser#simpleDataType.
-func (v *Visitor) VisitSimpleDataType(ctx *gen.SimpleDataTypeContext) DataType {
+// visitSimpleDataType visits a parse tree produced by MySqlParser#simpleDataType.
+func (v *Visitor) visitSimpleDataType(ctx *gen.SimpleDataTypeContext) DataType {
 	v.trace("VisitSimpleDataType")
 	text := parseToken(ctx.GetTypeName(), withUpperCase(), withTrim("`"))
 	switch text {
@@ -307,8 +308,8 @@ func (v *Visitor) VisitSimpleDataType(ctx *gen.SimpleDataTypeContext) DataType {
 	return nil
 }
 
-// VisitCollectionDataType visits a parse tree produced by MySqlParser#collectionDataType.
-func (v *Visitor) VisitCollectionDataType(ctx *gen.CollectionDataTypeContext) DataType {
+// visitCollectionDataType visits a parse tree produced by MySqlParser#collectionDataType.
+func (v *Visitor) visitCollectionDataType(ctx *gen.CollectionDataTypeContext) DataType {
 	v.trace("VisitCollectionDataType")
 	text := parseToken(ctx.GetTypeName(), withUpperCase(), withTrim("`"))
 	var values []string
@@ -333,8 +334,8 @@ func (v *Visitor) VisitCollectionDataType(ctx *gen.CollectionDataTypeContext) Da
 	return nil
 }
 
-// VisitSpatialDataType visits a parse tree produced by MySqlParser#spatialDataType.
-func (v *Visitor) VisitSpatialDataType(ctx *gen.SpatialDataTypeContext) DataType {
+// visitSpatialDataType visits a parse tree produced by MySqlParser#spatialDataType.
+func (v *Visitor) visitSpatialDataType(ctx *gen.SpatialDataTypeContext) DataType {
 	v.trace("VisitSpatialDataType")
 	text := parseToken(ctx.GetTypeName(), withUpperCase(), withTrim("`"))
 	switch text {
@@ -364,14 +365,14 @@ func (v *Visitor) VisitSpatialDataType(ctx *gen.SpatialDataTypeContext) DataType
 	return nil
 }
 
-// VisitLongVarcharDataType visits a parse tree produced by MySqlParser#longVarcharDataType.
-func (v *Visitor) VisitLongVarcharDataType(_ *gen.LongVarcharDataTypeContext) DataType {
+// visitLongVarcharDataType visits a parse tree produced by MySqlParser#longVarcharDataType.
+func (v *Visitor) visitLongVarcharDataType(_ *gen.LongVarcharDataTypeContext) DataType {
 	v.trace("VisitLongVarcharDataType")
 	return with(LongVarChar)
 }
 
-// VisitLongVarbinaryDataType visits a parse tree produced by MySqlParser#longVarbinaryDataType.
-func (v *Visitor) VisitLongVarbinaryDataType(_ *gen.LongVarbinaryDataTypeContext) DataType {
+// visitLongVarbinaryDataType visits a parse tree produced by MySqlParser#longVarbinaryDataType.
+func (v *Visitor) visitLongVarbinaryDataType(_ *gen.LongVarbinaryDataTypeContext) DataType {
 	v.trace("VisitLongVarbinaryDataType")
 	return with(LongVarBinary)
 }
