@@ -29,22 +29,23 @@ type TableConstraint struct {
 	ColumnUniqueKey []string
 }
 
-// VisitTableConstraint visits a parse tree produced by MySqlParser#tableConstraint.
-func (v *Visitor) VisitTableConstraint(ctx gen.ITableConstraintContext) *TableConstraint {
+// visitTableConstraint visits a parse tree produced by MySqlParser#tableConstraint.
+func (v *Visitor) visitTableConstraint(ctx gen.ITableConstraintContext) *TableConstraint {
+	v.trace("VisitTableConstraint")
 	var ret TableConstraint
 	switch tx := ctx.(type) {
 	case *gen.PrimaryKeyTableConstraintContext:
 		if tx.IndexColumnNames() != nil {
 			indexColumnNamesCtx, ok := tx.IndexColumnNames().(*gen.IndexColumnNamesContext)
 			if ok {
-				ret.ColumnPrimaryKey = v.VisitIndexColumnNames(indexColumnNamesCtx)
+				ret.ColumnPrimaryKey = v.visitIndexColumnNames(indexColumnNamesCtx)
 			}
 		}
 	case *gen.UniqueKeyTableConstraintContext:
 		if tx.IndexColumnNames() != nil {
 			indexColumnNamesCtx, ok := tx.IndexColumnNames().(*gen.IndexColumnNamesContext)
 			if ok {
-				ret.ColumnUniqueKey = v.VisitIndexColumnNames(indexColumnNamesCtx)
+				ret.ColumnUniqueKey = v.visitIndexColumnNames(indexColumnNamesCtx)
 			}
 		}
 	case *gen.ForeignKeyTableConstraintContext:
@@ -54,8 +55,9 @@ func (v *Visitor) VisitTableConstraint(ctx gen.ITableConstraintContext) *TableCo
 	return &ret
 }
 
-// VisitIndexColumnNames visits a parse tree produced by MySqlParser#indexColumnNames.
-func (v *Visitor) VisitIndexColumnNames(ctx *gen.IndexColumnNamesContext) []string {
+// visitIndexColumnNames visits a parse tree produced by MySqlParser#indexColumnNames.
+func (v *Visitor) visitIndexColumnNames(ctx *gen.IndexColumnNamesContext) []string {
+	v.trace("VisitIndexColumnNames")
 	var columns []string
 	for _, e := range ctx.AllIndexColumnName() {
 		indexCtx, ok := e.(*gen.IndexColumnNameContext)
@@ -63,14 +65,15 @@ func (v *Visitor) VisitIndexColumnNames(ctx *gen.IndexColumnNamesContext) []stri
 			continue
 		}
 
-		columns = append(columns, v.VisitIndexColumnName(indexCtx))
+		columns = append(columns, v.visitIndexColumnName(indexCtx))
 	}
 
 	return columns
 }
 
-// VisitIndexColumnName visits a parse tree produced by MySqlParser#indexColumnName.
-func (v *Visitor) VisitIndexColumnName(ctx *gen.IndexColumnNameContext) string {
+// visitIndexColumnName visits a parse tree produced by MySqlParser#indexColumnName.
+func (v *Visitor) visitIndexColumnName(ctx *gen.IndexColumnNameContext) string {
+	v.trace("VisitIndexColumnName")
 	var column string
 	if ctx.Uid() != nil {
 		column = v.visitUid(ctx.Uid())

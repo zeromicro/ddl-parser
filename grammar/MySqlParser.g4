@@ -2086,7 +2086,6 @@ collectionOptions
 
 convertedDataType
     : typeName=(BINARY| NCHAR) lengthOneDimension?
-    : typeName=(BINARY| NCHAR) lengthOneDimension?
     | typeName=CHAR lengthOneDimension? ((CHARACTER SET | CHARSET) charsetName)?
     | typeName=(DATE | DATETIME | TIME | JSON)
     | typeName=DECIMAL lengthTwoDimension?

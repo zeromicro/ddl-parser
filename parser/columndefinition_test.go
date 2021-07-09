@@ -39,10 +39,7 @@ func TestVisitor_VisitColumnDefinition(t *testing.T) {
 	assert.Equal(t, ColumnConstraint{
 		NotNull:         true,
 		HasDefaultValue: true,
-		AutoIncrement:   false,
 		Primary:         true,
-		Key:             false,
-		Unique:          false,
 		Comment:         "test comment",
 	}, *columnDefinition.ColumnConstraint)
 
@@ -52,12 +49,7 @@ func TestVisitor_VisitColumnDefinition(t *testing.T) {
 	columnDefinition = v.(*ColumnDefinition)
 
 	assert.Equal(t, ColumnConstraint{
-		NotNull:         false,
-		HasDefaultValue: false,
-		AutoIncrement:   false,
-		Primary:         false,
-		Key:             true,
-		Unique:          false,
+		Key: true,
 	}, *columnDefinition.ColumnConstraint)
 
 	v, err = p.testMysqlSyntax("test.sql", accept, `bigint(20) NULL AUTO_INCREMENT UNIQUE KEY`)
@@ -66,12 +58,8 @@ func TestVisitor_VisitColumnDefinition(t *testing.T) {
 	columnDefinition = v.(*ColumnDefinition)
 
 	assert.Equal(t, ColumnConstraint{
-		NotNull:         false,
-		HasDefaultValue: false,
-		AutoIncrement:   true,
-		Primary:         false,
-		Key:             false,
-		Unique:          true,
+		AutoIncrement: true,
+		Unique:        true,
 	}, *columnDefinition.ColumnConstraint)
 
 	v, err = p.testMysqlSyntax("test.sql", accept, `bigint(20) NULL DEFAULT NULL AUTO_INCREMENT UNIQUE KEY`)
@@ -80,12 +68,8 @@ func TestVisitor_VisitColumnDefinition(t *testing.T) {
 	columnDefinition = v.(*ColumnDefinition)
 
 	assert.Equal(t, ColumnConstraint{
-		NotNull:         false,
-		HasDefaultValue: false,
-		AutoIncrement:   true,
-		Primary:         false,
-		Key:             false,
-		Unique:          true,
+		AutoIncrement: true,
+		Unique:        true,
 	}, *columnDefinition.ColumnConstraint)
 
 	v, err = p.testMysqlSyntax("test.sql", accept, `varchar(20) DEFAULT '' AUTO_INCREMENT UNIQUE KEY`)
@@ -94,11 +78,8 @@ func TestVisitor_VisitColumnDefinition(t *testing.T) {
 	columnDefinition = v.(*ColumnDefinition)
 
 	assert.Equal(t, ColumnConstraint{
-		NotNull:         false,
-		HasDefaultValue: false,
+		HasDefaultValue: true,
 		AutoIncrement:   true,
-		Primary:         false,
-		Key:             false,
 		Unique:          true,
 	}, *columnDefinition.ColumnConstraint)
 }
