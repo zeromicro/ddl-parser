@@ -26,7 +26,7 @@ import (
 
 func TestVisitor_VisitCreateTable(t *testing.T) {
 	p := NewParser(WithDebugMode(true))
-	accept := func(p *gen.MySqlParser, visitor *Visitor) interface{} {
+	accept := func(p *gen.MySqlParser, visitor *visitor) interface{} {
 		ctx := p.CreateTable()
 		return visitor.visitCreateTable(ctx)
 	}

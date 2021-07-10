@@ -22,6 +22,7 @@ import (
 	"github.com/antlr/antlr4/runtime/Go/antlr"
 )
 
+// Token is an abstraction from each lexical element, literal, etc.
 type Token interface {
 	GetLine() int
 	GetColumn() int
@@ -56,12 +57,6 @@ func withTrim(c string) parseOption {
 func withUpperCase() parseOption {
 	return func(text string) string {
 		return strings.ToUpper(text)
-	}
-}
-
-func withLowerCase() parseOption {
-	return func(text string) string {
-		return strings.ToLower(text)
 	}
 }
 

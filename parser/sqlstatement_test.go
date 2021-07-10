@@ -25,7 +25,7 @@ import (
 
 func TestVisitor_VisitSqlStatements(t *testing.T) {
 	p := NewParser(WithDebugMode(true))
-	accept := func(p *gen.MySqlParser, visitor *Visitor) interface{} {
+	accept := func(p *gen.MySqlParser, visitor *visitor) interface{} {
 		root := p.Root()
 		return root.Accept(visitor)
 	}

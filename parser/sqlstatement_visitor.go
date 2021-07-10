@@ -19,7 +19,7 @@ package parser
 import "github.com/zeromicro/ddl-parser/gen"
 
 // VisitRoot visits a parse tree produced by MySqlParser#root.
-func (v *Visitor) VisitRoot(ctx *gen.RootContext) interface{} {
+func (v *visitor) VisitRoot(ctx *gen.RootContext) interface{} {
 	v.trace("VisitRoot")
 	if ctx.SqlStatements() != nil {
 		return ctx.SqlStatements().Accept(v)
@@ -29,7 +29,7 @@ func (v *Visitor) VisitRoot(ctx *gen.RootContext) interface{} {
 }
 
 // VisitSqlStatements visits a parse tree produced by MySqlParser#sqlStatements.
-func (v *Visitor) VisitSqlStatements(ctx *gen.SqlStatementsContext) interface{} {
+func (v *visitor) VisitSqlStatements(ctx *gen.SqlStatementsContext) interface{} {
 	v.trace("VisitSqlStatements")
 	var createTables []*CreateTable
 	for _, e := range ctx.AllSqlStatement() {
@@ -47,7 +47,7 @@ func (v *Visitor) VisitSqlStatements(ctx *gen.SqlStatementsContext) interface{} 
 }
 
 // VisitSqlStatement visits a parse tree produced by MySqlParser#sqlStatement.
-func (v *Visitor) VisitSqlStatement(ctx *gen.SqlStatementContext) interface{} {
+func (v *visitor) VisitSqlStatement(ctx *gen.SqlStatementContext) interface{} {
 	v.trace("VisitSqlStatement")
 	if ctx.DdlStatement() != nil {
 		return ctx.DdlStatement().Accept(v)
@@ -57,7 +57,7 @@ func (v *Visitor) VisitSqlStatement(ctx *gen.SqlStatementContext) interface{} {
 }
 
 // VisitDdlStatement visits a parse tree produced by MySqlParser#ddlStatement.
-func (v *Visitor) VisitDdlStatement(ctx *gen.DdlStatementContext) interface{} {
+func (v *visitor) VisitDdlStatement(ctx *gen.DdlStatementContext) interface{} {
 	v.trace("VisitDdlStatement")
 	if ctx.CreateTable() != nil {
 		return v.visitCreateTable(ctx.CreateTable())
