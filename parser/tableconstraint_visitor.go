@@ -30,7 +30,7 @@ type TableConstraint struct {
 }
 
 // visitTableConstraint visits a parse tree produced by MySqlParser#tableConstraint.
-func (v *Visitor) visitTableConstraint(ctx gen.ITableConstraintContext) *TableConstraint {
+func (v *visitor) visitTableConstraint(ctx gen.ITableConstraintContext) *TableConstraint {
 	v.trace("VisitTableConstraint")
 	var ret TableConstraint
 	switch tx := ctx.(type) {
@@ -56,7 +56,7 @@ func (v *Visitor) visitTableConstraint(ctx gen.ITableConstraintContext) *TableCo
 }
 
 // visitIndexColumnNames visits a parse tree produced by MySqlParser#indexColumnNames.
-func (v *Visitor) visitIndexColumnNames(ctx *gen.IndexColumnNamesContext) []string {
+func (v *visitor) visitIndexColumnNames(ctx *gen.IndexColumnNamesContext) []string {
 	v.trace("VisitIndexColumnNames")
 	var columns []string
 	for _, e := range ctx.AllIndexColumnName() {
@@ -72,19 +72,24 @@ func (v *Visitor) visitIndexColumnNames(ctx *gen.IndexColumnNamesContext) []stri
 }
 
 // visitIndexColumnName visits a parse tree produced by MySqlParser#indexColumnName.
-func (v *Visitor) visitIndexColumnName(ctx *gen.IndexColumnNameContext) string {
+func (v *visitor) visitIndexColumnName(ctx *gen.IndexColumnNameContext) string {
 	v.trace("VisitIndexColumnName")
 	var column string
 	if ctx.Uid() != nil {
 		column = v.visitUid(ctx.Uid())
 	} else {
-		column = parseTerminalNode(ctx.STRING_LITERAL(), withTrim("`"), withTrim("'"), withReplacer("\r", "", "\n", ""))
+		column = parseTerminalNode(
+			ctx.STRING_LITERAL(),
+			withTrim("`"),
+			withTrim("'"),
+			withReplacer("\r", "", "\n", ""),
+		)
 	}
 
 	return column
 }
 
-func (v *Visitor) visitUid(ctx gen.IUidContext) string {
+func (v *visitor) visitUid(ctx gen.IUidContext) string {
 	str := ctx.GetText()
 	str = strings.Trim(str, "`")
 	str = strings.Trim(str, "'")

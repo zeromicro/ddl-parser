@@ -25,7 +25,7 @@ import (
 
 func TestVisitor_VisitDataType(t *testing.T) {
 	p := NewParser(WithDebugMode(true))
-	accept := func(p *gen.MySqlParser, visitor *Visitor) interface{} {
+	accept := func(p *gen.MySqlParser, visitor *visitor) interface{} {
 		return visitor.visitDataType(p.DataType())
 	}
 

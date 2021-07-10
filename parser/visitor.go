@@ -23,39 +23,20 @@ import (
 	"github.com/zeromicro/ddl-parser/gen"
 )
 
-type Visitor struct {
+type visitor struct {
 	gen.BaseMySqlParserVisitor
 	prefix string
 	debug  bool
 	logger console.Console
 }
 
-func (v *Visitor) trace(msg ...interface{}) {
+func (v *visitor) trace(msg ...interface{}) {
 	if v.debug {
 		v.logger.Debug("Visit Trace: " + fmt.Sprint(msg...))
 	}
 }
 
-func (v *Visitor) panic(line, column int, msg string) {
-	if len(v.prefix) == 0 {
-		err := fmt.Errorf("%v:%v %s", line, column, msg)
-		if v.debug {
-			v.logger.Error(err)
-		}
-
-		panic(err)
-		return
-	}
-
-	err := fmt.Errorf("%v line %v:%v %s", v.prefix, line, column, msg)
-	if v.debug {
-		v.logger.Error(err)
-	}
-
-	panic(err)
-}
-
-func (v *Visitor) panicWithExpr(expr Token, msg string) {
+func (v *visitor) panicWithExpr(expr Token, msg string) {
 	if len(v.prefix) == 0 {
 		err := fmt.Errorf("%v:%v %s", expr.GetLine(), expr.GetColumn(), msg)
 		if v.debug {
@@ -67,25 +48,6 @@ func (v *Visitor) panicWithExpr(expr Token, msg string) {
 	}
 
 	err := fmt.Errorf("%v line %v:%v %s", v.prefix, expr.GetLine(), expr.GetColumn(), msg)
-	if v.debug {
-		v.logger.Error(err)
-	}
-
-	panic(err)
-}
-
-func (v *Visitor) panicWithExpected(expr Token, expected, actual string) {
-	if len(v.prefix) == 0 {
-		err := fmt.Errorf("%v:%v expected %s, but found is %s", expr.GetLine(), expr.GetColumn(), expected, actual)
-		if v.debug {
-			v.logger.Error(err)
-		}
-
-		panic(err)
-		return
-	}
-
-	err := fmt.Errorf("%v line %v:%v expected %s, but found is %s", v.prefix, expr.GetLine(), expr.GetColumn(), expected, actual)
 	if v.debug {
 		v.logger.Error(err)
 	}

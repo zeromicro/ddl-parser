@@ -25,7 +25,7 @@ import (
 
 func TestVisitor_VisitColumnDefinition(t *testing.T) {
 	p := NewParser(WithDebugMode(true))
-	accept := func(p *gen.MySqlParser, visitor *Visitor) interface{} {
+	accept := func(p *gen.MySqlParser, visitor *visitor) interface{} {
 		definition := p.ColumnDefinition()
 		ctx := definition.(*gen.ColumnDefinitionContext)
 		return visitor.VisitColumnDefinition(ctx)

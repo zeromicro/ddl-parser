@@ -41,7 +41,7 @@ type key bool
 type primary bool
 
 // VisitColumnDefinition visits a parse tree produced by MySqlParser#columnDefinition.
-func (v *Visitor) VisitColumnDefinition(ctx *gen.ColumnDefinitionContext) interface{} {
+func (v *visitor) VisitColumnDefinition(ctx *gen.ColumnDefinitionContext) interface{} {
 	v.trace("VisitColumnDefinition")
 
 	var (
@@ -73,12 +73,13 @@ func (v *Visitor) VisitColumnDefinition(ctx *gen.ColumnDefinitionContext) interf
 			v.panicWithExpr(tx.GetStart(), "Unsupported reference definition")
 		}
 	}
+
 	out.ColumnConstraint = &constraint
 	return &out
 }
 
 // visitNullColumnConstraint visits a parse tree produced by MySqlParser#nullColumnConstraint.
-func (v *Visitor) visitNullColumnConstraint(ctx *gen.NullColumnConstraintContext) bool {
+func (v *visitor) visitNullColumnConstraint(ctx *gen.NullColumnConstraintContext) bool {
 	v.trace("VisitNullColumnConstraint")
 	if ret, ok := ctx.NullNotnull().(*gen.NullNotnullContext); ok {
 		return v.visitNullNotnull(ret)
@@ -88,12 +89,13 @@ func (v *Visitor) visitNullColumnConstraint(ctx *gen.NullColumnConstraintContext
 }
 
 // visitDefaultColumnConstraint visits a parse tree produced by MySqlParser#defaultColumnConstraint.
-func (v *Visitor) visitDefaultColumnConstraint(ctx *gen.DefaultColumnConstraintContext) bool {
+func (v *visitor) visitDefaultColumnConstraint(ctx *gen.DefaultColumnConstraintContext) bool {
 	v.trace("VisitDefaultColumnConstraint")
 	text := ctx.DefaultValue().GetText()
 	text = strings.Trim(text, "`")
 	text = strings.Trim(text, "'")
-	text = strings.NewReplacer("\r", "", "\n", "").Replace(text)
+	replacer := strings.NewReplacer("\r", "", "\n", "")
+	text = replacer.Replace(text)
 	if strings.ToUpper(text) == "NULL" {
 		return false
 	}
@@ -102,13 +104,13 @@ func (v *Visitor) visitDefaultColumnConstraint(ctx *gen.DefaultColumnConstraintC
 }
 
 // visitAutoIncrementColumnConstraint visits a parse tree produced by MySqlParser#autoIncrementColumnConstraint.
-func (v *Visitor) visitAutoIncrementColumnConstraint(_ *gen.AutoIncrementColumnConstraintContext) bool {
+func (v *visitor) visitAutoIncrementColumnConstraint(_ *gen.AutoIncrementColumnConstraintContext) bool {
 	v.trace("VisitAutoIncrementColumnConstraint")
 	return true
 }
 
 // VisitPrimaryKeyColumnConstraint visits a parse tree produced by MySqlParser#primaryKeyColumnConstraint.
-func (v *Visitor) VisitPrimaryKeyColumnConstraint(ctx *gen.PrimaryKeyColumnConstraintContext) interface{} {
+func (v *visitor) VisitPrimaryKeyColumnConstraint(ctx *gen.PrimaryKeyColumnConstraintContext) interface{} {
 	v.trace("VisitPrimaryKeyColumnConstraint")
 	if ctx.PRIMARY() == nil {
 		var ret key
@@ -122,20 +124,26 @@ func (v *Visitor) VisitPrimaryKeyColumnConstraint(ctx *gen.PrimaryKeyColumnConst
 }
 
 // visitUniqueKeyColumnConstraint visits a parse tree produced by MySqlParser#uniqueKeyColumnConstraint.
-func (v *Visitor) visitUniqueKeyColumnConstraint(_ *gen.UniqueKeyColumnConstraintContext) bool {
+func (v *visitor) visitUniqueKeyColumnConstraint(_ *gen.UniqueKeyColumnConstraintContext) bool {
 	v.trace("VisitUniqueKeyColumnConstraint")
 	return true
 }
 
 // visitCommentColumnConstraint visits a parse tree produced by MySqlParser#commentColumnConstraint.
-func (v *Visitor) visitCommentColumnConstraint(ctx *gen.CommentColumnConstraintContext) string {
+func (v *visitor) visitCommentColumnConstraint(ctx *gen.CommentColumnConstraintContext) string {
 	v.trace("VisitCommentColumnConstraint")
-	value := parseTerminalNode(ctx.STRING_LITERAL(), withTrim("`"), withTrim(`"`), withTrim(`'`), withReplacer(`\r`, "", `\n`, ""))
+	value := parseTerminalNode(
+		ctx.STRING_LITERAL(),
+		withTrim("`"),
+		withTrim(`"`),
+		withTrim(`'`),
+		withReplacer(`\r`, "", `\n`, ""),
+	)
 	return value
 }
 
 // visitNullNotnull visits a parse tree produced by MySqlParser#nullNotnull.
-func (v *Visitor) visitNullNotnull(ctx *gen.NullNotnullContext) bool {
+func (v *visitor) visitNullNotnull(ctx *gen.NullNotnullContext) bool {
 	v.trace("VisitNullNotnull")
 	if ctx.NOT() != nil {
 		return true

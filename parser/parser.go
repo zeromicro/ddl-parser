@@ -38,7 +38,7 @@ type Parser struct {
 type Option func(p *Parser)
 
 // Acceptor is the alias of function
-type Acceptor func(p *gen.MySqlParser, visitor *Visitor) interface{}
+type Acceptor func(p *gen.MySqlParser, visitor *visitor) interface{}
 
 // NewParser creates an instance of Parser.
 func NewParser(options ...Option) *Parser {
@@ -92,6 +92,7 @@ func (p *Parser) testMysqlSyntax(prefix string, acceptor Acceptor, sql string) (
 			}
 		}
 	}()
+
 	p.prefix = prefix
 	inputStream := antlr.NewInputStream(sql)
 	caseChangingStream := newCaseChangingStream(inputStream, true)
@@ -101,7 +102,8 @@ func (p *Parser) testMysqlSyntax(prefix string, acceptor Acceptor, sql string) (
 	mysqlParser := gen.NewMySqlParser(tokens)
 	mysqlParser.RemoveErrorListeners()
 	mysqlParser.AddErrorListener(p)
-	visitor := &Visitor{
+
+	visitor := &visitor{
 		prefix: prefix,
 		debug:  p.debug,
 		logger: p.logger,

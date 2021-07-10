@@ -40,13 +40,17 @@ type createDefinition struct {
 }
 
 // visitCreateTable visits a parse tree produced by MySqlParser#createTable.
-func (v *Visitor) visitCreateTable(ctx gen.ICreateTableContext) *CreateTable {
+func (v *visitor) visitCreateTable(ctx gen.ICreateTableContext) *CreateTable {
 	v.trace("VisitCreateTable")
 	switch tx := ctx.(type) {
 	case *gen.CopyCreateTableContext:
-		v.panicWithExpr(tx.GetStart(), "Unsupported creating a table by copying from another table")
+		v.panicWithExpr(tx.GetStart(),
+			"Unsupported creating a table by copying from another table",
+		)
 	case *gen.QueryCreateTableContext:
-		v.panicWithExpr(tx.GetStart(), "Unsupported creating a table by querying from another table")
+		v.panicWithExpr(tx.GetStart(),
+			"Unsupported creating a table by querying from another table",
+		)
 	case *gen.ColumnCreateTableContext:
 		return v.visitColumnCreateTable(tx)
 	}
@@ -56,13 +60,14 @@ func (v *Visitor) visitCreateTable(ctx gen.ICreateTableContext) *CreateTable {
 }
 
 // visitColumnCreateTable visits a parse tree produced by MySqlParser#columnCreateTable.
-func (v *Visitor) visitColumnCreateTable(ctx *gen.ColumnCreateTableContext) *CreateTable {
+func (v *visitor) visitColumnCreateTable(ctx *gen.ColumnCreateTableContext) *CreateTable {
 	v.trace("VisitColumnCreateTable")
 	var ret CreateTable
 	tableName := ctx.TableName().GetText()
 	tableName = strings.Trim(tableName, "`")
 	tableName = strings.Trim(tableName, "'")
-	tableName = strings.NewReplacer("\r", "", "\n", "").Replace(tableName)
+	replacer := strings.NewReplacer("\r", "", "\n", "")
+	tableName = replacer.Replace(tableName)
 	ret.Name = tableName
 	if ctx.CreateDefinitions() != nil {
 		if createDefinitionsContext, ok := ctx.CreateDefinitions().(*gen.CreateDefinitionsContext); ok {
@@ -75,7 +80,7 @@ func (v *Visitor) visitColumnCreateTable(ctx *gen.ColumnCreateTableContext) *Cre
 }
 
 // visitCreateDefinitions visits a parse tree produced by MySqlParser#createDefinitions.
-func (v *Visitor) visitCreateDefinitions(ctx *gen.CreateDefinitionsContext) []*createDefinition {
+func (v *visitor) visitCreateDefinitions(ctx *gen.CreateDefinitionsContext) []*createDefinition {
 	v.trace("VisitCreateDefinitions")
 	var ret []*createDefinition
 	for _, e := range ctx.AllCreateDefinition() {
@@ -99,7 +104,7 @@ func (v *Visitor) visitCreateDefinitions(ctx *gen.CreateDefinitionsContext) []*c
 }
 
 // VisitCreateDefinition visits a parse tree produced by MySqlParser#createDefinition.
-func (v *Visitor) VisitCreateDefinition(ctx gen.ICreateDefinitionContext) interface{} {
+func (v *visitor) VisitCreateDefinition(ctx gen.ICreateDefinitionContext) interface{} {
 	v.trace("VisitCreateDefinition")
 	switch tx := ctx.(type) {
 	case *gen.ColumnDeclarationContext:
@@ -126,7 +131,7 @@ func (v *Visitor) VisitCreateDefinition(ctx gen.ICreateDefinitionContext) interf
 	return nil
 }
 
-func (v *Visitor) convertCreateDefinition(list []*createDefinition, table *CreateTable) {
+func (v *visitor) convertCreateDefinition(list []*createDefinition, table *CreateTable) {
 	for _, e := range list {
 		if e.ColumnDeclaration != nil {
 			table.Columns = append(table.Columns, e.ColumnDeclaration)
@@ -162,7 +167,7 @@ func (c *CreateTable) Convert() *Table {
 		}
 		ret.Columns = append(ret.Columns, &data)
 	}
-	ret.Constraints = c.Constraints
 
+	ret.Constraints = c.Constraints
 	return &ret
 }
