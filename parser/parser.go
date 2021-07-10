@@ -18,10 +18,16 @@ package parser
 
 import (
 	"fmt"
+	"io/ioutil"
+	"path/filepath"
 
 	"github.com/antlr/antlr4/runtime/Go/antlr"
 	"github.com/zeromicro/ddl-parser/console"
 	"github.com/zeromicro/ddl-parser/gen"
+)
+
+var (
+	empty []*Table
 )
 
 // Parser is the syntax entry to parse sql as AST, you can use NewParser to create
@@ -77,6 +83,61 @@ func WithConsole(logger console.Console) Option {
 	return func(p *Parser) {
 		p.logger = logger
 	}
+}
+
+func (p *Parser) From(filename string) (ret []*Table, err error) {
+	if !filepath.IsAbs(filename) {
+		return nil, fmt.Errorf("%s is not a valid path", filename)
+	}
+
+	defer func() {
+		p := recover()
+		if p != nil {
+			switch e := p.(type) {
+			case error:
+				err = e
+			default:
+				err = fmt.Errorf("%+v", p)
+			}
+		}
+	}()
+
+	bytes, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	prefix := filepath.Base(filename)
+	p.prefix = prefix
+	inputStream := antlr.NewInputStream(string(bytes))
+	caseChangingStream := newCaseChangingStream(inputStream, true)
+	lexer := gen.NewMySqlLexer(caseChangingStream)
+	lexer.RemoveErrorListeners()
+	tokens := antlr.NewCommonTokenStream(lexer, antlr.LexerDefaultTokenChannel)
+	mysqlParser := gen.NewMySqlParser(tokens)
+	mysqlParser.RemoveErrorListeners()
+	mysqlParser.AddErrorListener(p)
+
+	visitor := &visitor{
+		prefix: prefix,
+		debug:  p.debug,
+		logger: p.logger,
+	}
+	v := mysqlParser.Root().Accept(visitor)
+	if v == nil {
+		return empty, nil
+	}
+
+	createTables, ok := v.([]*CreateTable)
+	if !ok {
+		return empty, nil
+	}
+
+	for _, e := range createTables {
+		ret = append(ret, e.Convert())
+	}
+
+	return
 }
 
 // testMysqlSyntax tests the mysql syntax with unit test.
