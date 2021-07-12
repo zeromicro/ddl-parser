@@ -295,7 +295,7 @@ func assertCreateTableEqual(t *testing.T, expected, actual *CreateTable) {
 	}
 
 	for i, expectedConstraint := range expected.Constraints {
-		actualConstraint := expected.Constraints[i]
+		actualConstraint := actual.Constraints[i]
 		assert.Equal(t, *expectedConstraint, *actualConstraint)
 		assert.Equal(t, expectedConstraint, actualConstraint)
 	}

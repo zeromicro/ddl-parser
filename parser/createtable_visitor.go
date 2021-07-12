@@ -122,9 +122,7 @@ func (v *visitor) VisitCreateDefinition(ctx gen.ICreateDefinitionContext) interf
 		return &ret
 	case *gen.ConstraintDeclarationContext:
 		if tx.TableConstraint() != nil {
-			if constraintCtx, ok := tx.TableConstraint().(*gen.TableConstraintContext); ok {
-				return v.visitTableConstraint(constraintCtx)
-			}
+			return v.visitTableConstraint(tx.TableConstraint())
 		}
 	}
 
