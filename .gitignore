@@ -7,3 +7,4 @@
 /grammar/MySqlLexer.tokens
 /grammar/MySqlLexer.interp
 /gen/MySqlLexer.java
+.idea
