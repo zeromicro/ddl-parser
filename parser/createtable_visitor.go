@@ -23,7 +23,8 @@ import (
 )
 
 type CreateTable struct {
-	// Name describes the literal of table
+	// Name describes the literal of table, this name can be specified as db_name.tbl_name,
+	// https://dev.mysql.com/doc/refman/8.0/en/create-table.html#create-table-name
 	Name        string
 	Columns     []*ColumnDeclaration
 	Constraints []*TableConstraint
@@ -154,7 +155,7 @@ type Column struct {
 
 func (c *CreateTable) Convert() *Table {
 	var ret Table
-	ret.Name = c.Name
+	ret.Name = onlyTableName(c.Name)
 	for _, e := range c.Columns {
 		definition := e.ColumnDefinition
 		var data Column
@@ -168,4 +169,11 @@ func (c *CreateTable) Convert() *Table {
 
 	ret.Constraints = c.Constraints
 	return &ret
+}
+
+func onlyTableName(name string) string {
+	// antlr v4 parse talbe name `db_name`.`tbl_name` as string
+	// "db_name`.`tbl_name"
+	ss := strings.Split(name, "`.`")
+	return ss[len(ss)-1]
 }

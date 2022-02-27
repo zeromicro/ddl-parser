@@ -39,7 +39,7 @@ func TestVisitor_VisitCreateTable(t *testing.T) {
 
 	t.Run("queryCreateTable", func(t *testing.T) {
 		_, err := p.testMysqlSyntax("test.sql", accept,
-			`CREATE TABLE test (a INT NOT NULL AUTO_INCREMENT,PRIMARY KEY (a), 
+			`CREATE TABLE test (a INT NOT NULL AUTO_INCREMENT,PRIMARY KEY (a),
 				KEY(b))ENGINE=InnoDB SELECT b,c FROM test2;`)
 		assert.Error(t, err)
 	})
@@ -276,6 +276,25 @@ func TestVisitor_VisitCreateTable(t *testing.T) {
 			},
 		}, table)
 	})
+}
+
+func TestGetTableFromCreateTable(t *testing.T) {
+	p := NewParser(WithDebugMode(true))
+	accept := func(p *gen.MySqlParser, visitor *visitor) interface{} {
+		ctx := p.CreateTable()
+		return visitor.visitCreateTable(ctx)
+	}
+	v, err := p.testMysqlSyntax("test.sql", accept,
+		"CREATE TABLE `foo`.`bar` (\n  "+
+			"`id` bigint NOT NULL AUTO_INCREMENT,\n  "+
+			"PRIMARY KEY (`id`)\n"+
+			") USING BTREE\n) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;")
+	assert.Nil(t, err)
+	createTable, ok := v.(*CreateTable)
+	assert.True(t, ok)
+	assert.Equal(t, "foo`.`bar", createTable.Name)
+	table := createTable.Convert()
+	assert.Equal(t, "bar", table.Name)
 }
 
 func assertCreateTableEqual(t *testing.T, expected, actual *CreateTable) {
