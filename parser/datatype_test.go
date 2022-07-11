@@ -183,6 +183,17 @@ func TestVisitor_VisitDataType(t *testing.T) {
 			assert.Nil(t, err)
 			assertTypeEqual(t, dataType, actual)
 		}
+
+		testData = map[string]int{
+			`TINYINT(1) UNSIGNED`: TinyInt,
+			`SMALLINT UNSIGNED`:   SmallInt,
+			`BIGINT UNSIGNED`:     BigInt,
+		}
+		for sql, dataType := range testData {
+			actual, err := p.testMysqlSyntax("test.sql", accept, sql)
+			assert.Nil(t, err)
+			assertTypeEqual(t, dataType, actual, true)
+		}
 	})
 
 	t.Run("simpleDataType", func(t *testing.T) {
@@ -276,8 +287,11 @@ func TestVisitor_VisitDataType(t *testing.T) {
 	})
 }
 
-func assertTypeEqual(t *testing.T, expected int, actual interface{}) {
+func assertTypeEqual(t *testing.T, expected int, actual interface{}, unsigned ...bool) {
 	assert.Equal(t, expected, actual.(DataType).Type())
+	if len(unsigned) > 0 {
+		assert.Equal(t, unsigned[0], actual.(DataType).Unsigned())
+	}
 }
 
 func assertEnumTypeEqual(t *testing.T, expectedType int, values []string, actual interface{}) {
