@@ -58,8 +58,9 @@ func TestVisitor_VisitColumnDefinition(t *testing.T) {
 	columnDefinition = v.(*ColumnDefinition)
 
 	assert.Equal(t, ColumnConstraint{
-		AutoIncrement: true,
-		Unique:        true,
+		AutoIncrement:   true,
+		Unique:          true,
+		HasDefaultValue: false,
 	}, *columnDefinition.ColumnConstraint)
 
 	v, err = p.testMysqlSyntax("test.sql", accept, `bigint(20) NULL DEFAULT NULL AUTO_INCREMENT UNIQUE KEY`)

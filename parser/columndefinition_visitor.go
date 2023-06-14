@@ -96,7 +96,7 @@ func (v *visitor) visitDefaultColumnConstraint(ctx *gen.DefaultColumnConstraintC
 	text = strings.Trim(text, "'")
 	replacer := strings.NewReplacer("\r", "", "\n", "")
 	text = replacer.Replace(text)
-	if strings.ToUpper(text) == "NULL" {
+	if strings.HasPrefix(strings.ToUpper(text), "NULL") {
 		return false
 	}
 
